@@ -1,6 +1,6 @@
 streamlit
 streamlit-option-menu
-streamlit-gsheets
+streamlit_gsheets
 pandas
 gspread
 oauth2client
