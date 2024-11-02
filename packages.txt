@@ -1,0 +1,6 @@
+zlib1g-dev
+libjpeg-dev
+libpng-dev
+pkg-config
+meson
+ninja-build
