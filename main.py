@@ -304,7 +304,7 @@ def dashboard():
         else:
             st.warning("No entries available to delete.")
 
-        categories = ["Rent", "Utilities", "Load", "Food", "Transportation", "Supplies", "Other", "Cash", "E-money"]
+        '''categories = ["Rent", "Utilities", "Load", "Food", "Transportation", "Supplies", "Other", "Cash", "E-money"]
         selected_categories = st.selectbox("Select a category", categories)
         # categories_index = categories.index(selected_categories) + 1
 
@@ -334,7 +334,7 @@ def dashboard():
 
                 st.success("Entry deleted successfully!")
         else:
-            st.warning("No entries available to delete.")
+            st.warning("No entries available to delete.")'''
 
 
         st.write("---")  # Separator line
