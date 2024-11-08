@@ -304,37 +304,7 @@ def dashboard():
         else:
             st.warning("No entries available to delete.")
 
-        '''categories = ["Rent", "Utilities", "Load", "Food", "Transportation", "Supplies", "Other", "Cash", "E-money"]
-        selected_categories = st.selectbox("Select a category", categories)
-        # categories_index = categories.index(selected_categories) + 1
 
-        selected_categories_expenses = st.session_state.existing_data[
-            (st.session_state.existing_data['Category'] == selected_categories)
-        ]
-
-        if not selected_categories_expenses.empty:
-            st.dataframe(selected_categories_expenses, width=600)
-        else:
-            st.warning(f"No expenses found for {selected_categories}.")
-        
-
-
-        # Delete entry section (if you want to retain this functionality)
-        if not st.session_state.existing_data.empty:
-            # Select an entry to delete
-            delete_index = st.selectbox("Select entry to delete", st.session_state.existing_data.index)
-            delete_button = st.button("Delete Entry")
-
-            if delete_button:
-                # Delete the selected entry
-                st.session_state.existing_data = st.session_state.existing_data.drop(delete_index).reset_index(drop=True)
-
-                # Update Google Sheets with the modified DataFrame
-                conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
-
-                st.success("Entry deleted successfully!")
-        else:
-            st.warning("No entries available to delete.")'''
 
 
         st.write("---")  # Separator line
