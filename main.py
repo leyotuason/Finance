@@ -53,7 +53,7 @@ def dashboard():
         st.markdown("Daily entry")
         with st.form(key="expense_entry"):
 
-            current_date = datetime.date.today()
+            current_date = pd.Timestamp.today()
             entry_date = current_date
             entry_type = st.selectbox("Type", options=TYPE)
             category = st.selectbox("Category", options=CATEGORY, index=None)
