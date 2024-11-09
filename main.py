@@ -394,7 +394,9 @@ def dashboard():
             st.session_state.other_budget = other_budget
 
             st.success("Budget allocations saved successfully!")
-            
+
+
+        st.write("---")
         all_entries = st.session_state.existing_data 
         st.dataframe(all_entries, width=600)
 
