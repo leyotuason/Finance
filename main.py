@@ -394,6 +394,9 @@ def dashboard():
             st.session_state.other_budget = other_budget
 
             st.success("Budget allocations saved successfully!")
+            
+        all_entries = st.session_state.existing_data.head()  
+        st.dataframe(all_entries, width=600)
 
 # Initialize session state for logged-in status
 if 'logged_in' not in st.session_state:
