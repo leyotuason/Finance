@@ -54,8 +54,7 @@ def dashboard():
         with st.form(key="expense_entry"):
 
             current_date = datetime.date.today()
-            date = st.date_input(label="Date", value=current_date)
-            entry_date = date if date else current_date
+            entry_date = current_date
             entry_type = st.selectbox("Type", options=TYPE)
             category = st.selectbox("Category", options=CATEGORY, index=None)
             amount = st.number_input(label="Amount")
