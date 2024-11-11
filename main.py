@@ -205,11 +205,7 @@ def dashboard():
 
             total_daily_expense = daily_expenses['Amount'].sum()
             
-            st.metric(
-                label="Total Expenses Today",
-                value=f"₱{total_daily_expense:,.2f}",
-               help="Total expenses for today"
-        )
+            
             # Group by category and sum the amounts for today's expenses
             daily_expenses_grouped = daily_expenses.groupby('Category')['Amount'].sum().reset_index()
 
@@ -224,6 +220,13 @@ def dashboard():
             )
             fig_daily.update_layout(xaxis_title='Expense Category', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')  # Transparent background
             st.plotly_chart(fig_daily, use_container_width=True)
+            
+            st.info('  Expenses Today', icon="🛒")
+            st.metric(
+                label="Expenses Php",
+                value=f"{total_daily_expense:,.2f}")
+            
+        
         else:
             st.warning("No expense data available for today.")
 
