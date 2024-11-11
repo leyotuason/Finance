@@ -202,6 +202,14 @@ def dashboard():
                                 (expenses['Date'].dt.year == current_year)]
 
         if not daily_expenses.empty:
+
+            total_daily_expense = daily_expenses['Amount'].sum()
+            
+            st.metric(
+                label="Total Expenses Today",
+                value=f"₱{total_daily_expense:,.2f}",
+               help="Total expenses for today"
+        )
             # Group by category and sum the amounts for today's expenses
             daily_expenses_grouped = daily_expenses.groupby('Category')['Amount'].sum().reset_index()
 
@@ -220,12 +228,6 @@ def dashboard():
             st.warning("No expense data available for today.")
 
 
-        total_daily_expense = daily_expenses['Amount'].sum()
-
-        col00 = st.columns(1)
-        with col00[0]:
-            st.info(' Today Total Expense', icon="🛒")
-            st.metric(label='Expense Php', value=f"{total_daily_expenses:,.2f}")
 
         # Filter for expenses in the current month
         monthly_expenses = expenses[(expenses['Date'].dt.month == current_month) & (expenses['Date'].dt.year == current_year)]
