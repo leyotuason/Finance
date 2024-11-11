@@ -221,7 +221,7 @@ def dashboard():
             fig_daily.update_layout(xaxis_title='Expense Category', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')  # Transparent background
             st.plotly_chart(fig_daily, use_container_width=True)
             
-            st.info('  Expenses Today', icon="🛒")
+            st.info(' Total Expenses Today', icon="🛒")
             st.metric(
                 label="Expenses Php",
                 value=f"{total_daily_expense:,.2f}")
@@ -230,12 +230,16 @@ def dashboard():
         else:
             st.warning("No expense data available for today.")
 
+        st.write('---')
+
 
 
         # Filter for expenses in the current month
         monthly_expenses = expenses[(expenses['Date'].dt.month == current_month) & (expenses['Date'].dt.year == current_year)]
 
         if not monthly_expenses.empty:
+
+            total_monthly_expenses = monthly_expenses['Amount'].sum()
             # Group by date and sum the amounts
             monthly_expenses_grouped = monthly_expenses.groupby(monthly_expenses['Date'].dt.date)['Amount'].sum().reset_index()
 
@@ -250,6 +254,12 @@ def dashboard():
             )
             fig_monthly.update_layout(xaxis_title='Date', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')  # Transparent background
             st.plotly_chart(fig_monthly, use_container_width=True)
+            
+            st.info('Total Monthly Expenses', icon="🛒")
+            st.metric(label='Expense Php', value=f"{total_monthly_expenses:,.2f}")
+
+
+
         else:
             st.warning("No expense data available for this month.")
 
