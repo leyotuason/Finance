@@ -219,6 +219,12 @@ def dashboard():
         else:
             st.warning("No expense data available for today.")
 
+
+        total_daily_expense = daily_expenses['Amount'].sum()
+
+        st.info(' Today Total Expense', icon="🛒")
+        st.metric(label='Expense Php', value=f"{total_daily_expenses:,.2f}")
+
         # Filter for expenses in the current month
         monthly_expenses = expenses[(expenses['Date'].dt.month == current_month) & (expenses['Date'].dt.year == current_year)]
 
