@@ -445,7 +445,6 @@ def dashboard():
             step=100.0
         )
 
-        # Button to save the budget allocations
         if st.button("Save budget allocation"):
             st.session_state.rent_budget = rent_budget
             st.session_state.utilities_budget = utilities_budget
