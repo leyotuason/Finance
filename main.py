@@ -184,34 +184,27 @@ def dashboard():
             st.metric(label="Expenses Php", value=f"{other_expenses:,.2f}")
             st.metric(label='Remaining Php', value=f"{remaining_other_budget:,.2f}")   
 
-
-
     if selected == "Report":
         st.title("Financial Report")
 
         expenses = st.session_state.existing_data[st.session_state.existing_data['Type'] == 'Expense']
 
-        current_date = pd.to_datetime('today')
+        current_date = pd.Timestamp.now()
         current_day = current_date.day
         current_month = current_date.month
         current_year = current_date.year
 
+        # [Previous daily expenses code remains the same...]
         st.subheader("Daily Expenses")
-
-        # Filter for expenses in the current day
         daily_expenses = expenses[(expenses['Date'].dt.day == current_day) & 
                                 (expenses['Date'].dt.month == current_month) & 
                                 (expenses['Date'].dt.year == current_year)]
 
         if not daily_expenses.empty:
-
+            # [Daily expenses visualization code remains the same...]
             total_daily_expense = daily_expenses['Amount'].sum()
-            
-            
-            # Group by category and sum the amounts for today's expenses
             daily_expenses_grouped = daily_expenses.groupby('Category')['Amount'].sum().reset_index()
-
-            # Plotting the daily expenses by category as a bar graph using Plotly
+            
             fig_daily = px.bar(
                 daily_expenses_grouped,
                 x='Category',
@@ -220,102 +213,88 @@ def dashboard():
                 title='Expenses for Today',
                 template='plotly'
             )
-            fig_daily.update_layout(xaxis_title='Expense Category', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')  # Transparent background
+            fig_daily.update_layout(xaxis_title='Expense Category', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_daily, use_container_width=True)
             
             st.info(' Total Expenses Today', icon="🛒")
             st.metric(
                 label="Expenses Php",
                 value=f"{total_daily_expense:,.2f}")
-            
-        
         else:
             st.warning("No expense data available for today.")
 
         st.write('---')
 
+        # Fixed Weekly Expenses Section
         st.subheader("Weekly Expenses")
-    
-        # Calculate the start of the week (Monday)
-        start_of_week = current_date - pd.Timedelta(days=current_date.dayofweek)
+        
+        # Calculate the date range for the current week (Monday to Sunday)
+        today = pd.Timestamp.now()
+        start_of_week = today - pd.Timedelta(days=today.dayofweek)
         end_of_week = start_of_week + pd.Timedelta(days=6)
-    
-        # Filter for expenses in the current week
+        
+        # Filter expenses for the current week
         weekly_expenses = expenses[
-            (expenses['Date'].dt.date >= start_of_week.date()) & 
-            (expenses['Date'].dt.date <= end_of_week.date())
-        ]
-    
+            (expenses['Date'] >= start_of_week) & 
+            (expenses['Date'] <= end_of_week)
+        ].copy()  # Create a copy to avoid SettingWithCopyWarning
+        
         if not weekly_expenses.empty:
             # Calculate total weekly expenses
             total_weekly_expense = weekly_expenses['Amount'].sum()
             
-            # Display total weekly expenses in a metric
+            # Display total weekly expenses
+            st.info(' Total Weekly Expenses', icon="📅")
             st.metric(
-                label="Total Expenses This Week",
-                value=f"₱{total_weekly_expense:,.2f}",
-                help=f"Total expenses from {start_of_week.strftime('%B %d')} to {end_of_week.strftime('%B %d')}"
+                label=f"Week of {start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d')}",
+                value=f"₱{total_weekly_expense:,.2f}"
             )
-    
+            
             # Create two columns for different weekly visualizations
             col1, col2 = st.columns(2)
-    
+            
             with col1:
                 # Daily breakdown for the week
-                daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum().reindex([
-                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-                ])
+                weekly_expenses['Day'] = weekly_expenses['Date'].dt.strftime('%A')
+                daily_breakdown = weekly_expenses.groupby('Day')['Amount'].sum()
                 
-                # Convert to DataFrame for line plot
+                # Ensure all days of the week are represented
+                all_days = pd.Series(0, index=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+                daily_breakdown = daily_breakdown.reindex(all_days.index).fillna(0)
+                
                 daily_breakdown_df = pd.DataFrame({
                     'Day': daily_breakdown.index,
                     'Amount': daily_breakdown.values
                 })
                 
-                fig_weekly_daily = px.line(
+                fig_weekly_daily = px.bar(
                     daily_breakdown_df,
                     x='Day',
                     y='Amount',
-                    markers=True,  # Add markers to the line
-                    title='Daily Expenses Trend',
+                    title='Daily Expenses This Week',
                     labels={'Day': 'Day of Week', 'Amount': 'Amount (₱)'}
                 )
                 
-                # Add value labels above each point
                 fig_weekly_daily.update_traces(
-                    mode='lines+markers+text',
                     text=[f'₱{x:,.2f}' for x in daily_breakdown_df['Amount']],
-                    textposition='top center'
+                    textposition='outside'
                 )
                 
                 st.plotly_chart(fig_weekly_daily, use_container_width=True)
-    
+            
             with col2:
                 # Category breakdown for the week
-                category_breakdown = weekly_expenses.groupby('Category')['Amount'].sum()
-                category_breakdown_df = pd.DataFrame({
-                    'Category': category_breakdown.index,
-                    'Amount': category_breakdown.values
-                }).sort_values('Amount', ascending=True)  # Sort for better visualization
+                category_breakdown = weekly_expenses.groupby('Category')['Amount'].sum().reset_index()
                 
-                fig_weekly_category = px.line(
-                    category_breakdown_df,
-                    x='Category',
-                    y='Amount',
-                    markers=True,  # Add markers to the line
-                    title='Weekly Expenses by Category',
-                    labels={'Category': 'Category', 'Amount': 'Amount (₱)'}
-                )
-                
-                # Add value labels above each point
-                fig_weekly_category.update_traces(
-                    mode='lines+markers+text',
-                    text=[f'₱{x:,.2f}' for x in category_breakdown_df['Amount']],
-                    textposition='top center'
+                fig_weekly_category = px.pie(
+                    category_breakdown,
+                    values='Amount',
+                    names='Category',
+                    title='Expenses by Category This Week'
                 )
                 
                 st.plotly_chart(fig_weekly_category, use_container_width=True)
-    
+            
             # Weekly Summary Table
             st.write("Weekly Summary by Category")
             weekly_summary = weekly_expenses.groupby('Category').agg({
@@ -327,9 +306,10 @@ def dashboard():
             weekly_summary['Total Amount'] = weekly_summary['Total Amount'].apply(lambda x: f"₱{x:,.2f}")
             
             st.dataframe(weekly_summary, use_container_width=True)
-    
+        
         else:
             st.warning("No expense data available for this week.")
+
 
         st.write('---')
 
