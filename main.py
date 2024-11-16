@@ -196,6 +196,8 @@ def dashboard():
         current_month = current_date.month
         current_year = current_date.year
 
+        st.subheader("Daily Expenses")
+
         # Filter for expenses in the current day
         daily_expenses = expenses[(expenses['Date'].dt.day == current_day) & 
                                 (expenses['Date'].dt.month == current_month) & 
@@ -232,7 +234,107 @@ def dashboard():
 
         st.write('---')
 
+        st.subheader("Weekly Expenses")
+    
+        # Calculate the start of the week (Monday)
+        start_of_week = current_date - pd.Timedelta(days=current_date.dayofweek)
+        end_of_week = start_of_week + pd.Timedelta(days=6)
+    
+        # Filter for expenses in the current week
+        weekly_expenses = expenses[
+            (expenses['Date'].dt.date >= start_of_week.date()) & 
+            (expenses['Date'].dt.date <= end_of_week.date())
+        ]
+    
+        if not weekly_expenses.empty:
+            # Calculate total weekly expenses
+            total_weekly_expense = weekly_expenses['Amount'].sum()
+            
+            # Display total weekly expenses in a metric
+            st.metric(
+                label="Total Expenses This Week",
+                value=f"₱{total_weekly_expense:,.2f}",
+                help=f"Total expenses from {start_of_week.strftime('%B %d')} to {end_of_week.strftime('%B %d')}"
+            )
+    
+            # Create two columns for different weekly visualizations
+            col1, col2 = st.columns(2)
+    
+            with col1:
+                # Daily breakdown for the week
+                daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum().reindex([
+                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+                ])
+                
+                # Convert to DataFrame for line plot
+                daily_breakdown_df = pd.DataFrame({
+                    'Day': daily_breakdown.index,
+                    'Amount': daily_breakdown.values
+                })
+                
+                fig_weekly_daily = px.line(
+                    daily_breakdown_df,
+                    x='Day',
+                    y='Amount',
+                    markers=True,  # Add markers to the line
+                    title='Daily Expenses Trend',
+                    labels={'Day': 'Day of Week', 'Amount': 'Amount (₱)'}
+                )
+                
+                # Add value labels above each point
+                fig_weekly_daily.update_traces(
+                    mode='lines+markers+text',
+                    text=[f'₱{x:,.2f}' for x in daily_breakdown_df['Amount']],
+                    textposition='top center'
+                )
+                
+                st.plotly_chart(fig_weekly_daily, use_container_width=True)
+    
+            with col2:
+                # Category breakdown for the week
+                category_breakdown = weekly_expenses.groupby('Category')['Amount'].sum()
+                category_breakdown_df = pd.DataFrame({
+                    'Category': category_breakdown.index,
+                    'Amount': category_breakdown.values
+                }).sort_values('Amount', ascending=True)  # Sort for better visualization
+                
+                fig_weekly_category = px.line(
+                    category_breakdown_df,
+                    x='Category',
+                    y='Amount',
+                    markers=True,  # Add markers to the line
+                    title='Weekly Expenses by Category',
+                    labels={'Category': 'Category', 'Amount': 'Amount (₱)'}
+                )
+                
+                # Add value labels above each point
+                fig_weekly_category.update_traces(
+                    mode='lines+markers+text',
+                    text=[f'₱{x:,.2f}' for x in category_breakdown_df['Amount']],
+                    textposition='top center'
+                )
+                
+                st.plotly_chart(fig_weekly_category, use_container_width=True)
+    
+            # Weekly Summary Table
+            st.write("Weekly Summary by Category")
+            weekly_summary = weekly_expenses.groupby('Category').agg({
+                'Amount': ['sum', 'count']
+            }).round(2)
+            
+            weekly_summary.columns = ['Total Amount', 'Number of Transactions']
+            weekly_summary = weekly_summary.reset_index()
+            weekly_summary['Total Amount'] = weekly_summary['Total Amount'].apply(lambda x: f"₱{x:,.2f}")
+            
+            st.dataframe(weekly_summary, use_container_width=True)
+    
+        else:
+            st.warning("No expense data available for this week.")
 
+        st.write('---')
+
+        st.subheader("Montly Expenses")
+    
 
         # Filter for expenses in the current month
         monthly_expenses = expenses[(expenses['Date'].dt.month == current_month) & (expenses['Date'].dt.year == current_year)]
