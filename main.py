@@ -46,10 +46,6 @@ def dashboard():
     
     if selected == "Entry":
         st.title("Finance Tracker")
-        st.markdown("Daily expense list")
-        latest_entries = st.session_state.existing_data.tail(3)  
-        st.dataframe(latest_entries, width=600)
-
         st.markdown("Daily entry")
         with st.form(key="expense_entry"):
 
@@ -84,6 +80,9 @@ def dashboard():
                 conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
 
                 st.success("Successfully submitted!")
+        st.markdown("Daily expense list")
+        latest_entries = st.session_state.existing_data.tail(3)  
+        st.dataframe(latest_entries, width=600)
 
     if selected == "Budget":
         st.title("Remaining Budget")
@@ -109,36 +108,15 @@ def dashboard():
                 
                 
         allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
-        total_allocated_budget = (
-            st.session_state.rent_budget +
-            st.session_state.utilities_budget +
-            st.session_state.food_budget +
-            st.session_state.transportation_budget +
-            st.session_state.supplies_budget +
-            st.session_state.load_budget +
-            st.session_state.other_budget
-        )
-
         total_expenses = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Expense"]['Amount'].sum()
         remaining_budget = allowance_total - total_expenses
 
-        col3 = st.columns(1)
-        with col3[0]:
+        col = st.columns(1)
+        with col[0]:
             st.info('Remaining Balance', icon="💰")
             st.metric(label='Remaining Php', value=f"{remaining_budget:,.2f}")       
 
-
-        col1, col2 = st.columns(2, gap='small')
-        
-        with col1:
-            st.info('  Total Allowance', icon="🪙")
-            st.metric(label='Allowance Php', value=f"{allowance_total:,.2f}")
-
-        with col2: 
-            st.info('  Total Allocated Budget', icon="💸")
-            st.metric(label='Allocated Budget Php', value=f"{total_allocated_budget:,.2f}")
-
-        st.write("---")  # Separator line
+        st.write("---") 
 
         st.title("Budget VS Expense")
 
@@ -194,27 +172,36 @@ def dashboard():
         current_month = current_date.month
         current_year = current_date.year
 
-        # [Previous daily expenses code remains the same...]
-        st.subheader("Daily Expenses")
         daily_expenses = expenses[(expenses['Date'].dt.day == current_day) & 
                                 (expenses['Date'].dt.month == current_month) & 
                                 (expenses['Date'].dt.year == current_year)]
 
         if not daily_expenses.empty:
-            # [Daily expenses visualization code remains the same...]
+
             total_daily_expense = daily_expenses['Amount'].sum()
             daily_expenses_grouped = daily_expenses.groupby('Category')['Amount'].sum().reset_index()
             
-            fig_daily = px.bar(
+            fig_daily = px.pie(
                 daily_expenses_grouped,
-                x='Category',
-                y='Amount',
-                labels={'Category': 'Expense Category', 'Amount': 'Total Amount'},
+                values='Amount',
+                names='Category',
                 title='Expenses for Today',
-                template='plotly'
+                template='plotly',
+                hole=0.3  
             )
-            fig_daily.update_layout(xaxis_title='Expense Category', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')
+            
+            # Update layout for better readability
+            fig_daily.update_traces(
+                textposition='outside',
+                textinfo='label+percent+value'
+            )
+            fig_daily.update_layout(
+                showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
             st.plotly_chart(fig_daily, use_container_width=True)
+
+            
             
             st.info(' Total Expenses Today', icon="🛒")
             st.metric(
@@ -225,76 +212,42 @@ def dashboard():
 
         st.write('---')
 
-        # Fixed Weekly Expenses Section
-        st.subheader("Weekly Expenses")
-        
-        # Calculate the date range for the current week (Monday to Sunday)
-        today = pd.Timestamp.now()
-        start_of_week = today - pd.Timedelta(days=today.dayofweek)
+        start_of_week = current_date - pd.Timedelta(days=current_date.dayofweek)
         end_of_week = start_of_week + pd.Timedelta(days=6)
-        
-        # Filter expenses for the current week
+    
+        # Filter for expenses in the current week
         weekly_expenses = expenses[
-            (expenses['Date'] >= start_of_week) & 
-            (expenses['Date'] <= end_of_week)
-        ].copy()  # Create a copy to avoid SettingWithCopyWarning
-        
+            (expenses['Date'].dt.date >= start_of_week.date()) & 
+            (expenses['Date'].dt.date <= end_of_week.date())
+        ]
+    
         if not weekly_expenses.empty:
             # Calculate total weekly expenses
             total_weekly_expense = weekly_expenses['Amount'].sum()
-            
-            # Display total weekly expenses
-            st.info(' Total Weekly Expenses', icon="📅")
-            st.metric(
-                label=f"Week of {start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d')}",
-                value=f"₱{total_weekly_expense:,.2f}"
-            )
-            
-            # Create two columns for different weekly visualizations
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Daily breakdown for the week
-                weekly_expenses['Day'] = weekly_expenses['Date'].dt.strftime('%A')
-                daily_breakdown = weekly_expenses.groupby('Day')['Amount'].sum()
+
+            daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum().reindex([
+                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+                ])
                 
-                # Ensure all days of the week are represented
-                all_days = pd.Series(0, index=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
-                daily_breakdown = daily_breakdown.reindex(all_days.index).fillna(0)
-                
-                daily_breakdown_df = pd.DataFrame({
+                # Convert to DataFrame for line plot
+            daily_breakdown_df = pd.DataFrame({
                     'Day': daily_breakdown.index,
                     'Amount': daily_breakdown.values
                 })
-                
-                fig_weekly_daily = px.bar(
-                    daily_breakdown_df,
-                    x='Day',
-                    y='Amount',
-                    title='Daily Expenses This Week',
-                    labels={'Day': 'Day of Week', 'Amount': 'Amount (₱)'}
-                )
-                
-                fig_weekly_daily.update_traces(
-                    text=[f'₱{x:,.2f}' for x in daily_breakdown_df['Amount']],
-                    textposition='outside'
-                )
-                
-                st.plotly_chart(fig_weekly_daily, use_container_width=True)
             
-            with col2:
-                # Category breakdown for the week
-                category_breakdown = weekly_expenses.groupby('Category')['Amount'].sum().reset_index()
-                
-                fig_weekly_category = px.pie(
-                    category_breakdown,
-                    values='Amount',
-                    names='Category',
-                    title='Expenses by Category This Week'
-                )
-                
-                st.plotly_chart(fig_weekly_category, use_container_width=True)
             
+            fig_weekly = px.bar(
+                daily_breakdown_df,
+                x='Day',
+                y='Amount',
+                labels={'Day': 'Day of Week', 'Amount': 'Total Amount'},
+                title='Expenses for the Week',
+                template='plotly'
+            )
+   
+            fig_weekly.update_layout(xaxis_title='Day', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')      
+            st.plotly_chart(fig_weekly, use_container_width=True)
+
             # Weekly Summary Table
             st.write("Weekly Summary by Category")
             weekly_summary = weekly_expenses.groupby('Category').agg({
@@ -303,19 +256,23 @@ def dashboard():
             
             weekly_summary.columns = ['Total Amount', 'Number of Transactions']
             weekly_summary = weekly_summary.reset_index()
-            weekly_summary['Total Amount'] = weekly_summary['Total Amount'].apply(lambda x: f"₱{x:,.2f}")
+            weekly_summary['Total Amount'] = weekly_summary['Total Amount'].apply(lambda x: f"{x:,.2f}")
             
             st.dataframe(weekly_summary, use_container_width=True)
-        
+
+            st.info(' Total Weekly Expenses', icon="🛒")
+            st.metric(
+                label="Expenses Php",
+                value=f"{total_weekly_expense:,.2f}",
+                help=f"Total expenses from {start_of_week.strftime('%B %d')} to {end_of_week.strftime('%B %d')}"
+                )
         else:
             st.warning("No expense data available for this week.")
 
 
+
         st.write('---')
-
-        st.subheader("Montly Expenses")
     
-
         # Filter for expenses in the current month
         monthly_expenses = expenses[(expenses['Date'].dt.month == current_month) & (expenses['Date'].dt.year == current_year)]
 
@@ -345,7 +302,7 @@ def dashboard():
         else:
             st.warning("No expense data available for this month.")
 
-        st.write("---")  # Separator line
+        st.write("---")  
 
 
         allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
@@ -367,7 +324,7 @@ def dashboard():
             st.metric(label='Allowance Php', value=f"{allowance_total:,.2f}")
 
         with col2: 
-            st.info('  Total Expense', icon="🛒")
+            st.info('  Total Expenses', icon="🛒")
             st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
 
 
@@ -411,7 +368,7 @@ def dashboard():
 
 
 
-        st.write("---")  # Separator line
+        st.write("---") 
 
 
 
@@ -500,10 +457,6 @@ def dashboard():
 
             st.success("Budget allocations saved successfully!")
 
-
-        st.write("---")
-        all_entries = st.session_state.existing_data 
-        st.dataframe(all_entries, width=600)
 
 # Initialize session state for logged-in status
 if 'logged_in' not in st.session_state:
