@@ -377,7 +377,7 @@ def dashboard():
             st.metric(
                 label="Expenses Php",
                 value=f"{total_weekly_expense:,.2f}",
-                help=f"Total expenses from {start_of_week.strftime('%B %d')} to {end_of_week.strftime('%B %d')}"
+                help=f"Total expenses from {start_of_week.strftime('%d/%m/%Y')} to {end_of_week.strftime('%d/%m/%Y')}"
                 )
         else:
             st.warning("No expense data available for this week.")
@@ -392,13 +392,16 @@ def dashboard():
             total_monthly_expenses = monthly_expenses['Amount'].sum()
             # Group by date and sum the amounts
             monthly_expenses_grouped = monthly_expenses.groupby(monthly_expenses['Date'].dt.date)['Amount'].sum().reset_index()
+            
+            # Format the dates to dd/mm/yyyy for display
+            monthly_expenses_grouped['Date_formatted'] = monthly_expenses_grouped['Date'].apply(lambda x: x.strftime('%d/%m/%Y'))
 
             # Plotting the monthly expenses as a line graph using Plotly
             fig_monthly = px.line(
                 monthly_expenses_grouped,
-                x='Date',
+                x='Date_formatted',
                 y='Amount',
-                labels={'Date': '', 'Amount': ''},
+                labels={'Date_formatted': 'Date', 'Amount': 'Amount'},
                 title='Expenses for the Month',
                 template='plotly'
             )
@@ -449,18 +452,30 @@ def dashboard():
             # Filter data for the selected month
             selected_month_expenses = st.session_state.existing_data[
                 (st.session_state.existing_data['Date'].dt.month == month_index)
-            ]
+            ].copy()
     
-            # Display filtered expenses
+            # Display filtered expenses with formatted dates
             if not selected_month_expenses.empty:
+                # Format the Date column for display
+                selected_month_expenses['Date'] = selected_month_expenses['Date'].dt.strftime('%d/%m/%Y')
                 st.dataframe(selected_month_expenses, use_container_width=True)
             else:
                 st.warning(f"No expenses found for {selected_month}.")
 
         with tab[1]:
             if not st.session_state.existing_data.empty:
+                # Create a copy for display with formatted dates
+                display_data = st.session_state.existing_data.copy()
+                display_data['Date'] = display_data['Date'].dt.strftime('%d/%m/%Y')
+                
+                # Create options for the selectbox with formatted dates
+                options = [f"{idx}: {row['Date']} - {row['Category']} - {row['Amount']}" 
+                          for idx, row in display_data.iterrows()]
+                
                 # Select an entry to delete
-                delete_index = st.selectbox("Select entry to delete", st.session_state.existing_data.index)
+                selected_option = st.selectbox("Select entry to delete", options)
+                delete_index = int(selected_option.split(':')[0])
+                
                 delete_button = st.button("Delete Entry")
     
                 if delete_button:
@@ -471,6 +486,7 @@ def dashboard():
                     conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
     
                     st.success("Entry deleted successfully!")
+                    st.rerun()
             else:
                 st.warning("No entries available to delete.")
 
