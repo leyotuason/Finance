@@ -101,8 +101,8 @@ def dashboard():
         with col[0]:
             st.info('Remaining Balance', icon="💵")
             st.metric(label='Remaining Php', value=f"{remaining_budget:,.2f}")  
-        col2 = st.columns(1)        
-        with col2: 
+        col2 = st.columns(1)         
+        with col2[0]:
         st.info('  Total Expenses', icon="🛒")
         st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
 
