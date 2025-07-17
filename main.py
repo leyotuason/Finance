@@ -39,7 +39,7 @@ def dashboard():
     with st.sidebar:
         selected = option_menu(
             menu_title="Finance Tracker",
-            options=["Entry", "Budget", "Report", "Settings"],
+            options=["Entry", "Report", "Settings"],
             menu_icon="house-fill",
             icons=["folder-fill", "list", "activity", "gear"]
         )
@@ -84,29 +84,6 @@ def dashboard():
         latest_entries = st.session_state.existing_data.tail(3)  
         st.dataframe(latest_entries, width=600)
 
-    if selected == "Budget":
-        st.title("Remaining Budget")
-
-        allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
-        expenses = st.session_state.existing_data[st.session_state.existing_data['Type'] == 'Expense']
-
-        rent_expenses = expenses[expenses['Category'] == 'Rent']['Amount'].sum()
-        utilities_expenses = expenses[expenses['Category'] == 'Utilities']['Amount'].sum()
-        food_expenses = expenses[expenses['Category'] == 'Food']['Amount'].sum()
-        supplies_expenses = expenses[expenses['Category'] == 'Supplies']['Amount'].sum()
-        load_expenses = expenses[expenses['Category'] == 'Load']['Amount'].sum()
-        transportation_expenses = expenses[expenses['Category'] == 'Transportation']['Amount'].sum()
-        other_expenses = expenses[expenses['Category'] == 'Other']['Amount'].sum()
-
-        remaining_rent_budget = st.session_state.rent_budget - rent_expenses
-        remaining_utilities_budget = st.session_state.utilities_budget - utilities_expenses
-        remaining_food_budget = st.session_state.food_budget - food_expenses
-        remaining_transportation_budget = st.session_state.transportation_budget - transportation_expenses
-        remaining_supplies_budget = st.session_state.supplies_budget - supplies_expenses
-        remaining_load_budget = st.session_state.load_budget - load_expenses
-        remaining_other_budget = st.session_state.other_budget - other_expenses
-                
-                
         allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
         total_expenses = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Expense"]['Amount'].sum()
         remaining_budget = allowance_total - total_expenses
@@ -116,51 +93,7 @@ def dashboard():
             st.info('Remaining Balance', icon="💰")
             st.metric(label='Remaining Php', value=f"{remaining_budget:,.2f}")       
 
-        st.write("---") 
-
-        st.title("Budget VS Expense")
-
-        total1, total2, total3 = st.columns(3, gap='small')
-
-        with total1:
-            st.info(' Rent Budget', icon="🏠")
-            st.metric(label="Expenses Php", value=f"{rent_expenses:,.2f}")
-            st.metric(label="Remaining Php", value=f"{remaining_rent_budget:,.2f}")
-
-
-        with total2:
-            st.info(' Utilities Budget', icon="💡")
-            st.metric(label="Exenses Php", value=f"{utilities_expenses:,.2f}")
-            st.metric(label="Remaining Php", value=f"{remaining_utilities_budget:,.2f}")
-
-        with total3:
-            st.info(' Food Budget', icon="🍽️")
-            st.metric(label="Expenses Php", value=f"{food_expenses:,.2f}")
-            st.metric(label="Remaining Php", value=f"{remaining_food_budget:,.2f}")
-
-        total6, total5, total4 = st.columns(3, gap='small')
-
-        with total4:
-            st.info('Transportation Budget', icon="🚗")
-            st.metric(label="Expenses Php", value=f"{transportation_expenses:,.2f}")
-            st.metric(label='Remaining Php', value=f"{remaining_transportation_budget:,.2f}")
-
-        with total5:
-            st.info('Supplies Budget', icon="📝")
-            st.metric(label="Expenses Php", value=f"{supplies_expenses:,.2f}")
-            st.metric(label='Remaining Php', value=f"{remaining_supplies_budget:,.2f}")
-
-        with total6:
-            st.info('Load Budget', icon="🌐")
-            st.metric(label="Expenses Php", value=f"{load_expenses:,.2f}")
-            st.metric(label='Remaining Php', value=f"{remaining_load_budget:,.2f}")
-
-        total7, none1, none2 = st.columns(3, gap='small')
-
-        with total7:
-            st.info('Other Budget', icon="🔗")
-            st.metric(label="Expenses Php", value=f"{other_expenses:,.2f}")
-            st.metric(label='Remaining Php', value=f"{remaining_other_budget:,.2f}")   
+        st.write("---")  
 
     if selected == "Report":
         st.title("Financial Report")
@@ -366,95 +299,7 @@ def dashboard():
             st.warning("No entries available to delete.")
 
 
-
-
         st.write("---") 
-
-
-
-
-        st.subheader("Budget Allocation")    
-
-        if 'rent_budget' not in st.session_state:
-            st.session_state.rent_budget = 0
-        
-        rent_budget = st.number_input(
-            label="Budget for Rent", 
-            value=float(st.session_state.rent_budget), 
-            min_value=0.0, 
-            step=100.0
-        )
-
-
-        if 'utilities_budget' not in st.session_state:
-            st.session_state.utilities_budget = 0
-        utilities_budget = st.number_input(
-            label="Budget for Utilities", 
-            value=float(st.session_state.utilities_budget),  
-            min_value=0.0, 
-            step=100.0
-        )
-
-
-        if 'food_budget' not in st.session_state:
-            st.session_state.food_budget = 0
-        food_budget = st.number_input(
-            label="Budget for Food", 
-            value=float(st.session_state.food_budget),  
-            min_value=0.0, 
-            step=100.0
-        )
-
-
-        if 'supplies_budget' not in st.session_state:
-            st.session_state.supplies_budget = 0
-        supplies_budget = st.number_input(
-            label="Budget for Supplies", 
-            value=float(st.session_state.supplies_budget),  
-            min_value=0.0, 
-            step=100.0
-        )
-
-
-        if 'load_budget' not in st.session_state:
-            st.session_state.load_budget = 0
-        load_budget = st.number_input(
-            label="Budget for Load", 
-            value=float(st.session_state.load_budget),  
-            min_value=0.0, 
-            step=100.0
-        )
-
-
-        if 'transportation_budget' not in st.session_state:
-            st.session_state.transportation_budget = 0
-        transportation_budget = st.number_input(
-            label="Budget for Transportation", 
-            value=float(st.session_state.transportation_budget),  
-            min_value=0.0, 
-            step=100.0
-        )
-
-
-        if 'other_budget' not in st.session_state:
-            st.session_state.other_budget = 0
-        other_budget = st.number_input(
-            label="Budget for Other", 
-            value=float(st.session_state.other_budget),  
-            min_value=0.0, 
-            step=100.0
-        )
-
-        if st.button("Save budget allocation"):
-            st.session_state.rent_budget = rent_budget
-            st.session_state.utilities_budget = utilities_budget
-            st.session_state.food_budget = food_budget
-            st.session_state.transportation_budget = transportation_budget
-            st.session_state.supplies_budget = supplies_budget
-            st.session_state.load_budget = load_budget
-            st.session_state.other_budget = other_budget
-
-            st.success("Budget allocations saved successfully!")
 
 
 # Initialize session state for logged-in status
