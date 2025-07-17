@@ -443,7 +443,7 @@ def dashboard():
         # Get the month index (0 for January, 11 for December)
         month_index = months.index(selected_month) + 1  # +1 to match with 1-12 month range
 
-        tab = st.tabs(['Select', 'Delete'])
+        tab = st.tabs(['View', 'Delete'])
         with tab[0]:
             
             # Filter data for the selected month
