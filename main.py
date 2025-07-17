@@ -8,10 +8,53 @@ import datetime
 page_bg = """
 <style>
 [data-testid="stAppViewContainer"] {
-background-image: url("https://unsplash.com/photos/northern-lights-3l3RwQdHRHg");
-background-size: cover;
+    background-image: url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
-<style> """
+
+[data-testid="stSidebar"] {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+[data-testid="stSidebar"] > div {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.main .block-container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.stMetric {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+.stInfo {
+    background: rgba(59, 130, 246, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.stWarning {
+    background: rgba(245, 158, 11, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.stSuccess {
+    background: rgba(34, 197, 94, 0.1);
+    backdrop-filter: blur(5px);
+}
+</style>
+"""
 
 st.markdown(page_bg, unsafe_allow_html=True)
 
@@ -91,7 +134,8 @@ def dashboard():
                 conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
 
                 st.success("Successfully submitted!")
-                st.write("---")  
+                
+        st.write("---")  
 
         allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
         total_expenses = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Expense"]['Amount'].sum()
