@@ -5,6 +5,17 @@ import pandas as pd
 import plotly.express as px
 import datetime
 
+page_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+background-image: url("https://unsplash.com/photos/northern-lights-3l3RwQdHRHg");
+background-size: cover;
+}
+<style> """
+
+st.markdown(page_bg, unsafe_allow_html=True)
+
+
 # Create a connection to Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
@@ -41,7 +52,7 @@ def dashboard():
             menu_title="Finance Tracker",
             options=["Entry", "Report", "Settings"],
             menu_icon="house-fill",
-            icons=["folder-fill", "list", "activity", "gear"]
+            icons=["folder-fill", "activity", "gear"]
         )
     
     if selected == "Entry":
@@ -80,9 +91,7 @@ def dashboard():
                 conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
 
                 st.success("Successfully submitted!")
-        st.markdown("Daily expense list")
-        latest_entries = st.session_state.existing_data.tail(3)  
-        st.dataframe(latest_entries, width=600)
+                st.write("---")  
 
         allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
         total_expenses = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Expense"]['Amount'].sum()
@@ -90,10 +99,14 @@ def dashboard():
 
         col = st.columns(1)
         with col[0]:
-            st.info('Remaining Balance', icon="💰")
-            st.metric(label='Remaining Php', value=f"{remaining_budget:,.2f}")       
+            st.info('Remaining Balance', icon="💵")
+            st.metric(label='Remaining Php', value=f"{remaining_budget:,.2f}")  
+        col2 = st.columns(1)        
+        with col2: 
+        st.info('  Total Expenses', icon="🛒")
+        st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
 
-        st.write("---")  
+
 
     if selected == "Report":
         st.title("Financial Report")
