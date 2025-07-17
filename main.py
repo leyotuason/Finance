@@ -443,33 +443,36 @@ def dashboard():
         # Get the month index (0 for January, 11 for December)
         month_index = months.index(selected_month) + 1  # +1 to match with 1-12 month range
 
-        # Filter data for the selected month
-        selected_month_expenses = st.session_state.existing_data[
-            (st.session_state.existing_data['Date'].dt.month == month_index)
-        ]
+        tab = st.tabs(['Select', 'Delete'])
+        with tab[0]:
+            
+            # Filter data for the selected month
+            selected_month_expenses = st.session_state.existing_data[
+                (st.session_state.existing_data['Date'].dt.month == month_index)
+            ]
+    
+            # Display filtered expenses
+            if not selected_month_expenses.empty:
+                st.dataframe(selected_month_expenses, use_container_width=True)
+            else:
+                st.warning(f"No expenses found for {selected_month}.")
 
-        # Display filtered expenses
-        if not selected_month_expenses.empty:
-            st.dataframe(selected_month_expenses, use_container_width=True)
-        else:
-            st.warning(f"No expenses found for {selected_month}.")
-
-        
-        if not st.session_state.existing_data.empty:
-            # Select an entry to delete
-            delete_index = st.selectbox("Select entry to delete", st.session_state.existing_data.index)
-            delete_button = st.button("Delete Entry")
-
-            if delete_button:
-                # Delete the selected entry
-                st.session_state.existing_data = st.session_state.existing_data.drop(delete_index).reset_index(drop=True)
-
-                # Update Google Sheets with the modified DataFrame
-                conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
-
-                st.success("Entry deleted successfully!")
-        else:
-            st.warning("No entries available to delete.")
+        with tab[1]:
+            if not st.session_state.existing_data.empty:
+                # Select an entry to delete
+                delete_index = st.selectbox("Select entry to delete", st.session_state.existing_data.index)
+                delete_button = st.button("Delete Entry")
+    
+                if delete_button:
+                    # Delete the selected entry
+                    st.session_state.existing_data = st.session_state.existing_data.drop(delete_index).reset_index(drop=True)
+    
+                    # Update Google Sheets with the modified DataFrame
+                    conn.update(worksheet="Sheet1", data=st.session_state.existing_data)
+    
+                    st.success("Entry deleted successfully!")
+            else:
+                st.warning("No entries available to delete.")
 
         st.write("---") 
 
