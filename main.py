@@ -5,10 +5,11 @@ import pandas as pd
 import plotly.express as px
 import datetime
 
+# Fixed background image CSS
 page_bg = """
 <style>
 [data-testid="stAppViewContainer"] {
-    background-image: url("https://unsplash.com/photos/northern-lights-3l3RwQdHRHg");
+    background-image: url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -57,7 +58,6 @@ page_bg = """
 """
 
 st.markdown(page_bg, unsafe_allow_html=True)
-
 
 # Create a connection to Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -149,8 +149,6 @@ def dashboard():
         with col2[0]:
             st.info('  Total Expenses', icon="🛒")
             st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
-
-
 
     if selected == "Report":
         st.title("Financial Report")
@@ -259,8 +257,6 @@ def dashboard():
         else:
             st.warning("No expense data available for this week.")
 
-
-
         st.write('---')
     
         # Filter for expenses in the current month
@@ -287,13 +283,10 @@ def dashboard():
             st.info('Total Monthly Expenses', icon="🛒")
             st.metric(label='Expense Php', value=f"{total_monthly_expenses:,.2f}")
 
-
-
         else:
             st.warning("No expense data available for this month.")
 
         st.write("---")  
-
 
         allowance_total = st.session_state.existing_data[st.session_state.existing_data['Type'] == "Allowance"]['Amount'].sum()
         
@@ -306,7 +299,6 @@ def dashboard():
             st.info('Remaining Budget', icon="💰")
             st.metric(label='Expense Php', value=f"{remaining_budget:,.2f}")       
 
-
         col1, col2 = st.columns(2, gap='small')
         
         with col1:
@@ -316,7 +308,6 @@ def dashboard():
         with col2: 
             st.info('  Total Expenses', icon="🛒")
             st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
-
 
     if selected == "Settings":
         st.subheader("Expense List")
@@ -355,9 +346,7 @@ def dashboard():
         else:
             st.warning("No entries available to delete.")
 
-
         st.write("---") 
-
 
 # Initialize session state for logged-in status
 if 'logged_in' not in st.session_state:
