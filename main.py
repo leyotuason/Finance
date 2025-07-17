@@ -34,7 +34,7 @@ page_bg = """
 }
 
 .stMetric {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
     padding: 1rem;
     border-radius: 8px;
     margin: 0.5rem 0;
@@ -177,7 +177,7 @@ page_bg = """
 /* Placeholder text styling */
 .stTextInput > div > div > input::placeholder,
 .stTextArea > div > div > textarea::placeholder {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.1);
 }
 </style>
 """
