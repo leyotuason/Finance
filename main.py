@@ -26,7 +26,7 @@ page_bg = """
 }
 
 .main .block-container {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.9);
     padding: 2rem;
     border-radius: 10px;
     margin-top: 2rem;
@@ -53,6 +53,131 @@ page_bg = """
 .stSuccess {
     background: rgba(34, 197, 94, 0.1);
     backdrop-filter: blur(5px);
+}
+
+/* Form inputs styling */
+.stTextInput > div > div > input {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+}
+
+.stTextInput > div > div > input:focus {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.stTextArea > div > div > textarea {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+}
+
+.stTextArea > div > div > textarea:focus {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.stNumberInput > div > div > input {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+}
+
+.stNumberInput > div > div > input:focus {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.stSelectbox > div > div > div {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+}
+
+.stSelectbox > div > div > div > div {
+    color: white;
+}
+
+/* Button styling */
+.stButton > button {
+    background: rgba(59, 130, 246, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    background: rgba(59, 130, 246, 0.5);
+    border-color: rgba(59, 130, 246, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.stButton > button:active {
+    transform: translateY(0px);
+}
+
+/* Form submit button styling */
+.stFormSubmitButton > button {
+    background: rgba(34, 197, 94, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.stFormSubmitButton > button:hover {
+    background: rgba(34, 197, 94, 0.5);
+    border-color: rgba(34, 197, 94, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.stFormSubmitButton > button:active {
+    transform: translateY(0px);
+}
+
+/* Form container styling */
+.stForm {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1rem 0;
+}
+
+/* Labels styling */
+.stSelectbox > label,
+.stTextInput > label,
+.stTextArea > label,
+.stNumberInput > label {
+    color: white;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Placeholder text styling */
+.stTextInput > div > div > input::placeholder,
+.stTextArea > div > div > textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
 }
 </style>
 """
