@@ -177,7 +177,7 @@ page_bg = """
 /* Placeholder text styling */
 .stTextInput > div > div > input::placeholder,
 .stTextArea > div > div > textarea::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.3);
 }
 </style>
 """
@@ -450,7 +450,7 @@ def dashboard():
 
         # Display filtered expenses
         if not selected_month_expenses.empty:
-            st.dataframe(selected_month_expenses, width=600)
+            st.dataframe(selected_month_expenses, use_column_width=True)
         else:
             st.warning(f"No expenses found for {selected_month}.")
 
