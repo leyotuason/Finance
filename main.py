@@ -438,7 +438,7 @@ def dashboard():
             st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
 
     if selected == "Settings":
-        st.subheader("Expense List")
+        st.title("Expense List")
         months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
                     'August', 'September', 'October', 'November', 'December']
         selected_month = st.selectbox("Select a month", months)
