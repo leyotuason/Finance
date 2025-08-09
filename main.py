@@ -115,6 +115,7 @@ page_bg = """
     backdrop-filter: blur(10px);
     border: 1px solid rgba(59, 130, 246, 0.5);
     border-radius: 8px;
+    width: 100% !important;
     color: white;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -339,7 +340,7 @@ def dashboard():
             total_weekly_expense = weekly_expenses['Amount'].sum()
 
             daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum().reindex([
-                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+                    'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'
                 ])
                 
                 # Convert to DataFrame for line plot
@@ -438,16 +439,179 @@ def dashboard():
             st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
 
     if selected == "Settings":
-        st.title("Expense List")
-        months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
-                    'August', 'September', 'October', 'November', 'December']
-        selected_month = st.selectbox("Select a month", months)
+        st.title("Settings & Data Management")
+        
+        # Create tabs for different functionalities
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Filtered Analysis", "📅 Monthly View", "👁️ View All", "🗑️ Delete Entry"])
+        
+        with tab1:
+            st.subheader("Expense Analysis with Filters")
+            
+            # Create filter columns
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Date range filter
+                st.write("**Date Range Filter**")
+                date_filter_type = st.radio(
+                    "Select date filter type:",
+                    ["All Time", "Date Range", "Specific Month", "Specific Year"],
+                    horizontal=True
+                )
+                
+                start_date = None
+                end_date = None
+                filter_month = None
+                filter_year = None
+                
+                if date_filter_type == "Date Range":
+                    col_start, col_end = st.columns(2)
+                    with col_start:
+                        start_date = st.date_input("Start Date")
+                    with col_end:
+                        end_date = st.date_input("End Date")
+                elif date_filter_type == "Specific Month":
+                    col_month, col_year = st.columns(2)
+                    with col_month:
+                        filter_month = st.selectbox("Month", range(1, 13), format_func=lambda x: datetime.date(2000, x, 1).strftime('%B'))
+                    with col_year:
+                        filter_year = st.number_input("Year", min_value=2020, max_value=2030, value=datetime.datetime.now().year)
+                elif date_filter_type == "Specific Year":
+                    filter_year = st.number_input("Year", min_value=2020, max_value=2030, value=datetime.datetime.now().year)
+            
+            with col2:
+                # Category and Type filters
+                st.write("**Category & Type Filters**")
+                
+                # Category filter
+                available_categories = st.session_state.existing_data['Category'].unique().tolist() if not st.session_state.existing_data.empty else CATEGORY
+                selected_categories = st.multiselect("Select Categories", available_categories, default=available_categories)
+                
+                # Type filter
+                selected_types = st.multiselect("Select Types", TYPE, default=TYPE)
+                
+                # Amount range filter
+                st.write("**Amount Range Filter**")
+                if not st.session_state.existing_data.empty:
+                    min_amount = float(st.session_state.existing_data['Amount'].min())
+                    max_amount = float(st.session_state.existing_data['Amount'].max())
+                    amount_range = st.slider("Amount Range", min_value=min_amount, max_value=max_amount, value=(min_amount, max_amount))
+                else:
+                    amount_range = (0.0, 1000.0)
+            
+            # Apply filters button
+            if st.button("Apply Filters", type="primary"):
+                if not st.session_state.existing_data.empty:
+                    filtered_data = st.session_state.existing_data.copy()
+                    
+                    # Apply date filters
+                    if date_filter_type == "Date Range" and start_date and end_date:
+                        filtered_data = filtered_data[
+                            (filtered_data['Date'].dt.date >= start_date) & 
+                            (filtered_data['Date'].dt.date <= end_date)
+                        ]
+                    elif date_filter_type == "Specific Month" and filter_month and filter_year:
+                        filtered_data = filtered_data[
+                            (filtered_data['Date'].dt.month == filter_month) & 
+                            (filtered_data['Date'].dt.year == filter_year)
+                        ]
+                    elif date_filter_type == "Specific Year" and filter_year:
+                        filtered_data = filtered_data[filtered_data['Date'].dt.year == filter_year]
+                    
+                    # Apply category filter
+                    if selected_categories:
+                        filtered_data = filtered_data[filtered_data['Category'].isin(selected_categories)]
+                    
+                    # Apply type filter
+                    if selected_types:
+                        filtered_data = filtered_data[filtered_data['Type'].isin(selected_types)]
+                    
+                    # Apply amount range filter
+                    filtered_data = filtered_data[
+                        (filtered_data['Amount'] >= amount_range[0]) & 
+                        (filtered_data['Amount'] <= amount_range[1])
+                    ]
+                    
+                    if not filtered_data.empty:
+                        st.write("---")
+                        
+                        # Summary metrics
+                        total_filtered = filtered_data['Amount'].sum()
+                        count_filtered = len(filtered_data)
+                        avg_filtered = filtered_data['Amount'].mean()
+                        
+                        # Display summary metrics
+                        metric_col1, metric_col2, metric_col3 = st.columns(3)
+                        
+                        with metric_col1:
+                            st.info("Total Amount", icon="💰")
+                            st.metric("Amount (Php)", f"{total_filtered:,.2f}")
+                        
+                        with metric_col2:
+                            st.info("Transaction Count", icon="📊")
+                            st.metric("Transactions", f"{count_filtered}")
+                        
+                        with metric_col3:
+                            st.info("Average Amount", icon="📈")
+                            st.metric("Average (Php)", f"{avg_filtered:,.2f}")
+                        
+                        st.write("---")
+                        
+                        # Category breakdown for filtered data
+                        if len(filtered_data['Category'].unique()) > 1:
+                            st.write("**Category Breakdown**")
+                            category_summary = filtered_data.groupby('Category').agg({
+                                'Amount': ['sum', 'count', 'mean']
+                            }).round(2)
+                            
+                            category_summary.columns = ['Total Amount', 'Count', 'Average']
+                            category_summary = category_summary.reset_index()
+                            category_summary['Total Amount'] = category_summary['Total Amount'].apply(lambda x: f"₱{x:,.2f}")
+                            category_summary['Average'] = category_summary['Average'].apply(lambda x: f"₱{x:,.2f}")
+                            
+                            st.dataframe(category_summary, use_container_width=True)
+                            
+                            # Category pie chart
+                            category_chart_data = filtered_data.groupby('Category')['Amount'].sum().reset_index()
+                            fig_category = px.pie(
+                                category_chart_data,
+                                values='Amount',
+                                names='Category',
+                                title='Filtered Expenses by Category',
+                                template='plotly'
+                            )
+                            st.plotly_chart(fig_category, use_container_width=True)
+                        
+                        st.write("---")
+                        
+                        # Display filtered data
+                        st.write("**Filtered Transaction Details**")
+                        display_filtered = filtered_data.copy()
+                        display_filtered['Date'] = display_filtered['Date'].dt.strftime('%d/%m/%Y')
+                        display_filtered = display_filtered.sort_values('Date', ascending=False)
+                        st.dataframe(display_filtered, use_container_width=True)
+                        
+                        # Download option
+                        csv = display_filtered.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download Filtered Data as CSV",
+                            data=csv,
+                            file_name=f"filtered_expenses_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv"
+                        )
+                    else:
+                        st.warning("No data found with the applied filters.")
+                else:
+                    st.warning("No data available to filter.")
+        
+        with tab2:
+            st.subheader("Monthly Expense View")
+            months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
+                        'August', 'September', 'October', 'November', 'December']
+            selected_month = st.selectbox("Select a month", months)
 
-        # Get the month index (0 for January, 11 for December)
-        month_index = months.index(selected_month) + 1  # +1 to match with 1-12 month range
-
-        tab = st.tabs(['View', 'Delete'])
-        with tab[0]:
+            # Get the month index (0 for January, 11 for December)
+            month_index = months.index(selected_month) + 1  # +1 to match with 1-12 month range
             
             # Filter data for the selected month
             selected_month_expenses = st.session_state.existing_data[
@@ -456,27 +620,84 @@ def dashboard():
     
             # Display filtered expenses with formatted dates
             if not selected_month_expenses.empty:
+                # Calculate monthly summary
+                monthly_total = selected_month_expenses['Amount'].sum()
+                monthly_count = len(selected_month_expenses)
+                monthly_avg = selected_month_expenses['Amount'].mean()
+                
+                # Display summary
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Amount", f"₱{monthly_total:,.2f}")
+                with col2:
+                    st.metric("Transactions", f"{monthly_count}")
+                with col3:
+                    st.metric("Average", f"₱{monthly_avg:,.2f}")
+                
+                st.write("---")
+                
                 # Format the Date column for display
                 selected_month_expenses['Date'] = selected_month_expenses['Date'].dt.strftime('%d/%m/%Y')
                 st.dataframe(selected_month_expenses, use_container_width=True)
             else:
                 st.warning(f"No expenses found for {selected_month}.")
+        
+        with tab3:
+            st.subheader("All Transactions")
+            if not st.session_state.existing_data.empty:
+                # Display all data with summary
+                total_all = st.session_state.existing_data['Amount'].sum()
+                count_all = len(st.session_state.existing_data)
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Total Amount", f"₱{total_all:,.2f}")
+                with col2:
+                    st.metric("Total Transactions", f"{count_all}")
+                
+                st.write("---")
+                
+                # Format dates for display
+                display_all = st.session_state.existing_data.copy()
+                display_all['Date'] = display_all['Date'].dt.strftime('%d/%m/%Y')
+                display_all = display_all.sort_values('Date', ascending=False)
+                
+                st.dataframe(display_all, use_container_width=True)
+            else:
+                st.warning("No data available.")
 
-        with tab[1]:
+        with tab4:
+            st.subheader("Delete Entry")
             if not st.session_state.existing_data.empty:
                 # Create a copy for display with formatted dates
                 display_data = st.session_state.existing_data.copy()
                 display_data['Date'] = display_data['Date'].dt.strftime('%d/%m/%Y')
                 
                 # Create options for the selectbox with formatted dates
-                options = [f"{idx}: {row['Date']} - {row['Category']} - {row['Amount']}" 
+                options = [f"{idx}: {row['Date']} - {row['Category']} - ₱{row['Amount']:.2f}" 
                           for idx, row in display_data.iterrows()]
                 
                 # Select an entry to delete
                 selected_option = st.selectbox("Select entry to delete", options)
                 delete_index = int(selected_option.split(':')[0])
                 
-                delete_button = st.button("Delete Entry")
+                # Show selected entry details
+                selected_entry = display_data.loc[delete_index]
+                st.write("**Selected Entry Details:**")
+                st.write(f"Date: {selected_entry['Date']}")
+                st.write(f"Type: {selected_entry['Type']}")
+                st.write(f"Category: {selected_entry['Category']}")
+                st.write(f"Amount: ₱{selected_entry['Amount']:.2f}")
+                st.write(f"Note: {selected_entry['Note']}")
+                
+                st.write("---")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    delete_button = st.button("🗑️ Delete Entry", type="secondary")
+                with col2:
+                    if st.button("❌ Cancel", type="primary"):
+                        st.info("Deletion cancelled.")
     
                 if delete_button:
                     # Delete the selected entry
