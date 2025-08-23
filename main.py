@@ -340,7 +340,7 @@ def dashboard():
             total_weekly_expense = weekly_expenses['Amount'].sum()
 
             daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum().reindex([
-                    'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'
+                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
                 ])
                 
                 # Convert to DataFrame for line plot
