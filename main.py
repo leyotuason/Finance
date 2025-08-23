@@ -207,9 +207,9 @@ def dashboard():
     with st.sidebar:
         selected = option_menu(
             menu_title="Finance Tracker",
-            options=["Entry", "Report", "Settings"],
+            options=["Entry", "Report", "Data"],
             menu_icon="house-fill",
-            icons=["folder-fill", "activity", "gear"]
+            icons=["folder-fill", "activity", "list"]
         )
     
     if selected == "Entry":
@@ -446,8 +446,8 @@ def dashboard():
             st.info('  Total Expenses', icon="🛒")
             st.metric(label='Expense Php', value=f"{total_expenses:,.2f}")
 
-    if selected == "Settings":
-        st.title("Settings & Data Management")
+    if selected == "Data":
+        st.title("Data Management")
         
         # Create tabs for different functionalities
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Filtered Analysis", "📅 Monthly View", "👁️ View All", "🗑️ Delete Entry"])
