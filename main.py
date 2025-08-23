@@ -203,18 +203,6 @@ if 'allowance' not in st.session_state:
 CATEGORY = ["Rent", "Utilities", "Load", "Food", "Transportation", "Supplies", "Other", "Cash", "E-money"]
 TYPE = ["Expense", "Allowance"]
 
-def login():
-    st.title("Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if username == "" and password == "":  
-            st.session_state.logged_in = True
-            st.success("Login Successful")
-            st.rerun()
-        else:
-            st.error("Invalid username or password")
-
 def dashboard():
     with st.sidebar:
         selected = option_menu(
@@ -326,6 +314,7 @@ def dashboard():
 
         st.write('---')
 
+        # Calculate start and end of current week (Monday to Sunday)
         start_of_week = current_date - pd.Timedelta(days=current_date.dayofweek)
         end_of_week = start_of_week + pd.Timedelta(days=6)
     
@@ -339,27 +328,46 @@ def dashboard():
             # Calculate total weekly expenses
             total_weekly_expense = weekly_expenses['Amount'].sum()
 
-            daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum().reindex([
-                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-                ])
+            # Group by day of week and sum amounts
+            daily_breakdown = weekly_expenses.groupby(weekly_expenses['Date'].dt.strftime('%A'))['Amount'].sum()
+            
+            # Reindex to ensure all days are present with 0 if no data
+            all_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            daily_breakdown = daily_breakdown.reindex(all_days, fill_value=0)
                 
-                # Convert to DataFrame for line plot
+            # Convert to DataFrame for bar plot
             daily_breakdown_df = pd.DataFrame({
-                    'Day': daily_breakdown.index,
-                    'Amount': daily_breakdown.values
-                })
+                'Day': daily_breakdown.index,
+                'Amount': daily_breakdown.values
+            })
             
-            
+            # Create bar chart
             fig_weekly = px.bar(
                 daily_breakdown_df,
                 x='Day',
                 y='Amount',
-                labels={'Day': 'Day of Week', 'Amount': 'Total Amount'},
-                title='Expenses for the Week',
-                template='plotly'
+                labels={'Day': 'Day of Week', 'Amount': 'Total Amount (Php)'},
+                title='Daily Expenses for This Week',
+                template='plotly',
+                color='Amount',
+                color_continuous_scale='viridis'
             )
-   
-            fig_weekly.update_layout(xaxis_title='Day', yaxis_title='Total Amount', plot_bgcolor='rgba(0,0,0,0)')      
+            
+            # Update layout for better appearance
+            fig_weekly.update_layout(
+                xaxis_title='Day of the Week',
+                yaxis_title='Total Amount (Php)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                showlegend=False,
+                xaxis={'categoryorder': 'array', 'categoryarray': all_days}
+            )
+            
+            # Add value labels on top of bars
+            fig_weekly.update_traces(
+                texttemplate='₱%{y:,.0f}',
+                textposition='outside'
+            )
+            
             st.plotly_chart(fig_weekly, use_container_width=True)
 
             # Weekly Summary Table
@@ -370,7 +378,7 @@ def dashboard():
             
             weekly_summary.columns = ['Total Amount', 'Number of Transactions']
             weekly_summary = weekly_summary.reset_index()
-            weekly_summary['Total Amount'] = weekly_summary['Total Amount'].apply(lambda x: f"{x:,.2f}")
+            weekly_summary['Total Amount'] = weekly_summary['Total Amount'].apply(lambda x: f"₱{x:,.2f}")
             
             st.dataframe(weekly_summary, use_container_width=True)
 
@@ -426,7 +434,7 @@ def dashboard():
         col3 = st.columns(1)
         with col3[0]:
             st.info('Remaining Budget', icon="💰")
-            st.metric(label='Expense Php', value=f"{remaining_budget:,.2f}")       
+            st.metric(label='Remaining Php', value=f"{remaining_budget:,.2f}")       
 
         col1, col2 = st.columns(2, gap='small')
         
@@ -711,18 +719,11 @@ def dashboard():
             else:
                 st.warning("No entries available to delete.")
 
-        st.write("---") 
+        st.write("---")
 
-# Initialize session state for logged-in status
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
-# Main app logic
+# Main app logic - directly show dashboard (no login required)
 def main():
-    if st.session_state.logged_in:
-        dashboard()
-    else:
-        login()
+    dashboard()
 
 if __name__ == "__main__":
     main()
